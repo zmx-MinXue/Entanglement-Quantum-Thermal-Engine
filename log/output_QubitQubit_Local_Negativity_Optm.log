@@ -1,0 +1,40 @@
+Optimizing negativity, params (eta_h, eta_c, g)...
+Initial guess: eta_h=1.51e-03, eta_c=6.74e-02, g=0.10
+Boundary: eta_h=(1e-05, 0.01), eta_c=(0.001, 0.2), g=(0.001, 0.3)
+differential_evolution step 1: f(x)= -0.010435260753264841
+differential_evolution step 2: f(x)= -0.010440738450635867
+differential_evolution step 3: f(x)= -0.010461003655585666
+differential_evolution step 4: f(x)= -0.010500949354550482
+differential_evolution step 5: f(x)= -0.010612325851254156
+differential_evolution step 6: f(x)= -0.010612325851254156
+differential_evolution step 7: f(x)= -0.010612325851254156
+differential_evolution step 8: f(x)= -0.010619616062060744
+differential_evolution step 9: f(x)= -0.010622868904899496
+differential_evolution step 10: f(x)= -0.010623834759838968
+Polishing solution with 'L-BFGS-B'
+Optimizing time usage: 15.99 s
+
+--- Optimization Successful. ---
+Maximum Negativity: 0.010629
+Parameters:
+  eta_h = 3.30750e-03
+  eta_c = 1.66908e-01
+      g = 2.31303e-01
+Caculating Hessian matrix at optimal point: [0.0033075  0.16690788 0.23130274]...
+Hessian Matrix: H = ∂²(-N) / (∂p_i ∂p_j):
+[[ 1.27115968e+03 -6.16258563e+00 -1.36976479e+01]
+ [-6.16258563e+00  8.89389831e-01 -5.53568111e-01]
+ [-1.36976479e+01 -5.53568111e-01  5.95371044e-01]]
+
+Hessian Eigenvalues (Curvature):
+[3.79086800e-04 1.30689625e+00 1.27133716e+03]
+
+Hessian Eigenvectors (Direction):
+[[ 0.01157426  0.00237649 -0.99993019]
+ [ 0.58513392 -0.8109222   0.00484569]
+ [ 0.81085407  0.58514916  0.01077639]]
+
+The flat direction (eigenvalue 3.79e-04) is:
+  eta_h: 0.012
+  eta_c: 0.585
+      g: 0.811
