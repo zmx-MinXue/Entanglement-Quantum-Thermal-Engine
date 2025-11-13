@@ -1,8 +1,10 @@
 from __future__ import annotations
-import numpy as np
 import pickle
+import numpy as np
 import sympy as sp
-from qutip import Qobj
+import qutip as qt
+import utilities as ut
+from functools import partial
 
 pkl_path = "QubitQutrit_GlobalME_data.pkl"
 
@@ -59,7 +61,7 @@ def build_Lops_from_pkl(
     nB_c_fun,
     *,
     param_values: dict[str, float],
-) -> list[Qobj]:
+) -> list[qt.Qobj]:
     """
     Build collapse operators L = sqrt(Γ_k(ω)) * S_k(ω).
     Returns list of QuTiP Qobj operators.
@@ -75,7 +77,7 @@ def build_Lops_from_pkl(
         rate = _rate_from_index(k, w_val, Omega_val,
                                 kappa_h_fun, kappa_c_fun, nB_h_fun, nB_c_fun)
         S_eig = np.asarray(S_omega_eig[k][w], dtype=complex)
-        Lops.append(Qobj(np.sqrt(rate) * S_eig))
+        Lops.append(qt.Qobj(np.sqrt(rate) * S_eig))
     return Lops
 
 
@@ -92,3 +94,41 @@ def build_Hs_matrix_from_pkl(param_values: dict[str, float]) -> np.ndarray:
                               if s.name in param_values})
     Hs_num = np.array(Hs_eval.evalf(), dtype=complex)
     return Hs_num
+
+def to_computational_basis(op_eig: np.ndarray) -> np.ndarray: 
+    data = load_export(pkl_path) 
+    U: sp.Matrix = data["U"]
+    Udag = U.conj().T
+    return U @ op_eig @ Udag
+
+
+def calculate_steady_negativity(Omega0, g, \
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
+    
+    param_values = {"Omega": Omega0, "g": g} 
+
+    nB_h_fun = partial(ut.n_B, T=T_h) 
+    nB_c_fun = partial(ut.n_B, T=T_c) 
+    kappa_h_fun = partial(ut.kappa_Ohmic, eta=eta_h, omega_c=omega_c_h) 
+    kappa_c_fun = partial(ut.kappa_Ohmic, eta=eta_c, omega_c=omega_c_c) 
+
+    # Note that Lops and Hs are both in Hs eigenbasis. 
+    Lops = build_Lops_from_pkl(
+        kappa_h_fun=kappa_h_fun, 
+        kappa_c_fun=kappa_c_fun, 
+        nB_h_fun=nB_h_fun, 
+        nB_c_fun=nB_c_fun, 
+        param_values=param_values, 
+    )
+
+    Hs_num = build_Hs_matrix_from_pkl(param_values) 
+    Hs = qt.Qobj(np.array(Hs_num, dtype=complex)) 
+
+    rho_ss = qt.steadystate(Hs, Lops)
+
+    rho_ss = qt.Qobj(to_computational_basis(rho_ss.full()), \
+                    dims=[[2,3],[2,3]])
+    rho_ss = (rho_ss + rho_ss.dag())/2
+    N_ss = qt.negativity(rho_ss, subsys=0)
+
+    return N_ss

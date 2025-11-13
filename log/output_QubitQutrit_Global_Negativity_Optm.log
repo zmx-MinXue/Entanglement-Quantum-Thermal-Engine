@@ -1,0 +1,29 @@
+Optimizing negativity, params (eta_h, eta_c, g)...
+Initial guess: eta_h=9.79e-03, eta_c=4.66e-01, g=4.88
+Boundary: eta_h=(1e-10, 0.01), eta_c=(1e-09, 1), g=(1e-05, 5)
+differential_evolution step 1: f(x)= -0.015879073608077943
+differential_evolution step 2: f(x)= -0.017219745099978256
+differential_evolution step 3: f(x)= -0.017219745099978256
+differential_evolution step 4: f(x)= -0.01785583472936536
+differential_evolution step 5: f(x)= -0.02158276084992472
+differential_evolution step 6: f(x)= -0.02158276084992472
+differential_evolution step 7: f(x)= -0.021815576336074782
+differential_evolution step 8: f(x)= -0.021815576336074782
+differential_evolution step 9: f(x)= -0.02209218863688156
+differential_evolution step 10: f(x)= -0.02209218863688156
+differential_evolution step 11: f(x)= -0.02209218863688156
+differential_evolution step 12: f(x)= -0.02210925247847617
+differential_evolution step 13: f(x)= -0.02210925247847617
+differential_evolution step 14: f(x)= -0.022150313359913687
+differential_evolution step 15: f(x)= -0.022150313359913687
+differential_evolution step 16: f(x)= -0.022150313359913687
+differential_evolution step 17: f(x)= -0.022150313359913687
+Polishing solution with 'L-BFGS-B'
+Optimizing time usage: 29.40 s
+
+--- Optimization Successful. ---
+Maximum Negativity: 0.022168
+Parameters:
+  eta_h = 1.00000e-10
+  eta_c = 6.58010e-01
+      g = 2.39681e+00
