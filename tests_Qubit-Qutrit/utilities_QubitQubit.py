@@ -1,6 +1,10 @@
 import qutip as qt
 import numpy as np
 
+import sys
+import os
+sys.path.append(os.getcwd())
+
 import utilities as ut
 
 # --- Operators for sub-system ---

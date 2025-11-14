@@ -4,7 +4,12 @@ import numdifftools as nd
 from scipy.optimize import differential_evolution
 import time
 
-import utilities_QubitQutrit as u23
+import sys
+import os
+sys.path.append(os.getcwd())
+
+import utilities_QubitQubit as u22
+
 
 # --- Fixed Parameters ---
 Omega0 = 1.0
@@ -17,7 +22,7 @@ omega_c_c = 50.0
 def objective_function(params):
     eta_h, eta_c, g = params
     
-    negativity = u23.calculate_steady_negativity(Omega0, g, \
+    negativity = u22.calculate_steady_negativity(Omega0, g, \
                             T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     
     return -negativity
@@ -36,6 +41,12 @@ initial_guess = [
     np.random.uniform(bounds[1][0], bounds[1][1]),
     np.random.uniform(bounds[2][0], bounds[2][1])
 ]
+
+# initial_guess = [
+#     1.51e-03, 
+#     6.74e-02,
+#     9.75e-02
+# ]
 
 print("Optimizing negativity, params (eta_h, eta_c, g)...")
 print(f"Initial guess: eta_h={initial_guess[0]:.2e}, eta_c={initial_guess[1]:.2e}, g={initial_guess[2]:.2f}")

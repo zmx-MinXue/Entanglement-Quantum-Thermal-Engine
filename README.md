@@ -1,0 +1,1 @@
+Run `export PYTHONPATH=$PWD` in new terminal everytime. 

@@ -4,7 +4,11 @@ import numdifftools as nd
 from scipy.optimize import differential_evolution
 import time
 
-import utilities_QubitQutrit_GlobalME as u23g
+import sys
+import os
+sys.path.append(os.getcwd())
+
+import utilities_QubitQutrit as u23
 
 # --- Fixed Parameters ---
 Omega0 = 1.0
@@ -17,7 +21,7 @@ omega_c_c = 50.0
 def objective_function(params):
     eta_h, eta_c, g = params
     
-    negativity = u23g.calculate_steady_negativity(Omega0, g, \
+    negativity = u23.calculate_steady_negativity(Omega0, g, \
                             T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     
     return -negativity
@@ -25,9 +29,9 @@ def objective_function(params):
 
 # --- Boundary for optimiaztion parameters ---
 bounds = [
-    (1e-10, 1e-2),       # eta_h 
-    (1e-9, 1),        # eta_c 
-    (1e-5, 5)         # g 
+    (1e-5, 1e-2),       # eta_h 
+    (1e-3, 0.2),        # eta_c 
+    (1e-3, 0.3)         # g 
 ]
 
 # --- Initial Guess ---
@@ -66,6 +70,32 @@ if result.success:
     print(f"  eta_c = {optimal_params[1]:.5e}")
     print(f"      g = {optimal_params[2]:.5e}")
 
+
+    # --- Calculate Hessian Matrix --- 
+    print(f"Caculating Hessian matrix at optimal point: {optimal_params}...")
+
+    hessian_matrix_calculator = nd.Hessian(objective_function, step=1e-4)
+    hessian_matrix = hessian_matrix_calculator(optimal_params)
+
+    print("Hessian Matrix: H = ∂²(-N) / (∂p_i ∂p_j):")
+    print(hessian_matrix)
+
+    eigenvalues, eigenvectors = np.linalg.eigh(hessian_matrix)
+    print("\nHessian Eigenvalues (Curvature):")
+    print(eigenvalues)
+
+    print("\nHessian Eigenvectors (Direction):")
+    print(eigenvectors)
+
+    # Minimimal eigenvalue (flat direction)
+    min_eig_index = np.argmin(eigenvalues)
+    min_eigenvalue = eigenvalues[min_eig_index]
+    flat_direction = eigenvectors[:, min_eig_index]
+
+    print(f"\nThe flat direction (eigenvalue {min_eigenvalue:.2e}) is:")
+    print(f"  eta_h: {flat_direction[0]:.3f}")
+    print(f"  eta_c: {flat_direction[1]:.3f}")
+    print(f"      g: {flat_direction[2]:.3f}")
 else:
     print("\n--- Optimization failure. ---")
     print(result.message)

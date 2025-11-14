@@ -3,10 +3,11 @@ __pycache__/
 *.so
 .ipynb_checkpoints/
 .DS_Store
-*.pkl
 *.npy
 *.npz
 *.h5
+.env
+.envrc
 .env/
 venv/
 .vscode/

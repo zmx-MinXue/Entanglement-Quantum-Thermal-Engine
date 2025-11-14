@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.getcwd())
+
 import utilities as ut
 
 Omega0 = 1.0

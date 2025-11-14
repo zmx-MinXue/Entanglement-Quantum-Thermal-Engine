@@ -2,6 +2,10 @@ import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
 
+import sys
+import os
+sys.path.append(os.getcwd())
+
 import utilities_QubitQutrit as u23
 
 # --- Parameters ---
