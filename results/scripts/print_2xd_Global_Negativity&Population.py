@@ -7,8 +7,7 @@ pkl_file = "results/data/2xd_Global_Negativity_scan_d.pkl"
 with open(pkl_file, "rb") as f:
     all_data = pickle.load(f)
 
-# all_data 是 dict： d -> {...}
-# 取出所有 d，并排序
+# all_data is a dict with key d： d -> {...}
 d_list = sorted(all_data.keys())
 
 # --- Negativity ---
@@ -22,11 +21,9 @@ for d in d_list:
     entry = all_data[d]
     rho_ss = entry["rho_ss"]
 
-    # 确保是 Qobj
     if isinstance(rho_ss, np.ndarray):
         rho_ss = qt.Qobj(rho_ss, dims=[[2, d], [2, d]])
     elif isinstance(rho_ss, qt.Qobj):
-        # 确保 dims 合理（如果之前保存时没有设置好，可以在这里强制一下）
         rho_ss.dims = [[2, d], [2, d]]
     else:
         raise TypeError(f"Unsupported type for rho_ss at d={d}: {type(rho_ss)}")
@@ -38,7 +35,6 @@ for d in d_list:
         pop_n = (Pn_full * rho_ss).tr().real
         row_pop.append(pop_n)
 
-    # 对齐到 max_d 列数
     while len(row_pop) < max_d:
         row_pop.append("")
 

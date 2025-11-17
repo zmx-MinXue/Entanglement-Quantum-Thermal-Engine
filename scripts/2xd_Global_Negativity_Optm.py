@@ -9,7 +9,7 @@ import src.utilities_2xd_GlobalME as u2dg
 result_path = "results/data/2xd_Global_Negativity_scan_d.pkl"
 
 # --- Fixed Parameters ---
-d = 2 
+d = 7 
 
 Omega0 = 1.0
 T_h = 10.0
@@ -20,7 +20,6 @@ omega_c_c = 50.0
 # --- Objective Function ---
 def objective_function(params):
     eta_h, eta_c, g = params
-    
     negativity = u2dg.calculate_steady_negativity(d, Omega0, g, \
                             T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     
@@ -29,9 +28,9 @@ def objective_function(params):
 
 # --- Boundary for optimiaztion parameters ---
 bounds = [
-    (1e-10, 1e-2),       # eta_h 
-    (1e-9, 0.5),        # eta_c 
-    (1e-5, 5)         # g 
+    (1e-10, 1e-2),      # eta_h 
+    (1e-9, 1),          # eta_c 
+    (1e-5, 5)           # g 
 ]
 
 # --- Initial Guess ---

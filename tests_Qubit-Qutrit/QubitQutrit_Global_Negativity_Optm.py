@@ -20,7 +20,6 @@ omega_c_c = 50.0
 # --- Objective Function ---
 def objective_function(params):
     eta_h, eta_c, g = params
-    
     negativity = u23g.calculate_steady_negativity(Omega0, g, \
                             T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     

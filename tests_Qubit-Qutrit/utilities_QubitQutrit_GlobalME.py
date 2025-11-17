@@ -9,7 +9,7 @@ import sys
 import os
 sys.path.append(os.getcwd())
 
-import utilities as ut
+import src.utilities as ut
 
 pkl_path = "QubitQutrit_GlobalME_data.pkl"
 
@@ -43,20 +43,23 @@ def eval_sym(expr: sp.Basic, params: dict[str, float]) -> float:
 # Lindblad part
 # ============================================================
 
-def _rate_from_index(k: int, w_val: float, Omega_val: float,
+def _rate_from_index(k: int, w_val: float, 
                      kappa_h, kappa_c, nB_h, nB_c) -> float:
     """Return Γ_k(ω) according to channel index."""
-    arg = Omega_val + w_val
     if k == 0:
-        return kappa_h(arg) * (nB_h(arg) + 1.0)
+        rate = kappa_h(w_val) * (nB_h(w_val) + 1.0)
     elif k == 1:
-        return kappa_h(arg) * nB_h(arg)
+        rate = kappa_h(w_val) * nB_h(w_val)
     elif k == 2:
-        return kappa_c(arg) * (nB_c(arg) + 1.0)
+        rate = kappa_c(w_val) * (nB_c(w_val) + 1.0)
     elif k == 3:
-        return kappa_c(arg) * nB_c(arg)
+        rate = kappa_c(w_val) * nB_c(w_val)
     else:
         raise ValueError(f"Unknown k={k}")
+    
+    # if rate > 10:
+    #     raise ValueError("High Dissipation rate.")
+    return rate
 
 
 def build_Lops_from_pkl(
@@ -72,15 +75,15 @@ def build_Lops_from_pkl(
     Returns list of QuTiP Qobj operators.
     """
     data = load_export(pkl_path)
-    Omega_val = eval_sym(sp.sympify("Omega"), param_values)
     S_omega_eig = data["S_omega_eig"]
     retained_triples_self = data["retained_triples_self"]
 
     Lops = []
     for (k, _, w) in retained_triples_self:
         w_val = eval_sym(w, param_values)
-        rate = _rate_from_index(k, w_val, Omega_val,
+        rate = _rate_from_index(k, w_val, 
                                 kappa_h_fun, kappa_c_fun, nB_h_fun, nB_c_fun)
+        # print(w_val, rate)
         S_eig = np.asarray(S_omega_eig[k][w], dtype=complex)
         Lops.append(qt.Qobj(np.sqrt(rate) * S_eig))
     return Lops
@@ -98,6 +101,7 @@ def build_Hs_matrix_from_pkl(param_values: dict[str, float]) -> np.ndarray:
                               for s in Hs_eig.free_symbols
                               if s.name in param_values})
     Hs_num = np.array(Hs_eval.evalf(), dtype=complex)
+    # print(Hs_num)
     return Hs_num
 
 def to_computational_basis(op_eig: np.ndarray) -> np.ndarray: 

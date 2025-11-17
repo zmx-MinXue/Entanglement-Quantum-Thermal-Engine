@@ -1,1 +1,1 @@
-Run `export PYTHONPATH=$PWD` in new terminal everytime. 
+The maximum point of global 2xd system negativity, is actually not valid under the assumptions for global master equation.

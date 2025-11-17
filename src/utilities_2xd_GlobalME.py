@@ -24,20 +24,23 @@ def eval_sym(expr: sp.Basic, params: dict[str, float]) -> float:
     return float(np.real_if_close(val))
 
 # Lindblad Eq structure
-def _rate_from_index(k: int, w_val: float, Omega_val: float,
+def _rate_from_index(k: int, w_val: float, 
                      kappa_h, kappa_c, nB_h, nB_c) -> float:
     """Return Γ_k(ω) according to channel index."""
-    arg = Omega_val + w_val
     if k == 0:
-        return kappa_h(arg) * (nB_h(arg) + 1.0)
+        rate = kappa_h(w_val) * (nB_h(w_val) + 1.0)
     elif k == 1:
-        return kappa_h(arg) * nB_h(arg)
+        rate = kappa_h(w_val) * nB_h(w_val)
     elif k == 2:
-        return kappa_c(arg) * (nB_c(arg) + 1.0)
+        rate = kappa_c(w_val) * (nB_c(w_val) + 1.0)
     elif k == 3:
-        return kappa_c(arg) * nB_c(arg)
+        rate = kappa_c(w_val) * nB_c(w_val)
     else:
         raise ValueError(f"Unknown k={k}")
+    
+    # if rate > 10:
+    #     raise ValueError("High Dissipation rate.")
+    return rate
 
 def build_Lops_from_pkl(
     d, 
@@ -53,14 +56,13 @@ def build_Lops_from_pkl(
     Returns list of QuTiP Qobj operators.
     """
     data = load_globalME_data(pkl_path, d)
-    Omega_val = eval_sym(sp.sympify("Omega"), param_values)
     S_omega_eig = data["S_omega_eig"]
     retained_triples_self = data["retained_triples_self"]
 
     Lops = []
     for (k, _, w) in retained_triples_self:
         w_val = eval_sym(w, param_values)
-        rate = _rate_from_index(k, w_val, Omega_val,
+        rate = _rate_from_index(k, w_val, 
                                 kappa_h_fun, kappa_c_fun, nB_h_fun, nB_c_fun)
         S_eig = np.asarray(S_omega_eig[k][w], dtype=complex)
         Lops.append(qt.Qobj(np.sqrt(rate) * S_eig))

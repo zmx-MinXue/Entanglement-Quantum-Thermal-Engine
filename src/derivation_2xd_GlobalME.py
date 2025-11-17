@@ -30,7 +30,9 @@ a, a_dag = sympy_annihilation_operator(d)
 
 # System Hamiltonian
 g = Symbol('g', real=True)
-H_S = g * (TensorProduct(sigma_p, a) + TensorProduct(sigma_m, a_dag))
+Omega = Symbol('Omega', real=True)
+H_S = Omega * (TensorProduct(sigma_p * sigma_m, eye(d))+ TensorProduct(eye(2), a_dag*a)) + \
+    g * (TensorProduct(sigma_p, a) + TensorProduct(sigma_m, a_dag))
 
 # Transform into Hs eigenbasis
 P, D = H_S.diagonalize()
