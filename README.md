@@ -11,4 +11,6 @@ The repository consists of three main parts:
 - results/ — data + data processing scripts
 
 # Something to note: 
-The maximum point of global 2xd system negativity, is actually not valid under the assumptions for global master equation.
+1. The maximum point of global 2xd system negativity, is actually not valid under the assumptions for global master equation. 
+2. Cut-off is (almost) valid. 
+3. Still, the maximum point for global 2xd system negativity is found when coupling to hot bath is closed as much as possible. But this point is not guaranteed in each trial. 

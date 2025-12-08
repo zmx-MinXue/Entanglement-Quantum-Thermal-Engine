@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 import qutip as qt
 
-pkl_file = "results/data/2xd_Global_Negativity_scan_d.pkl"
+pkl_file = "results/data/2xd_Global_Negativity_scan_d_v1.pkl"
 
 with open(pkl_file, "rb") as f:
     all_data = pickle.load(f)

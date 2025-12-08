@@ -30,14 +30,15 @@ def _rate_from_index(k: int, w_val: float,
     if k == 0:
         rate = kappa_h(w_val) * (nB_h(w_val) + 1.0)
     elif k == 1:
-        rate = kappa_h(w_val) * nB_h(w_val)
+        rate = kappa_h(-w_val) * nB_h(-w_val)
     elif k == 2:
         rate = kappa_c(w_val) * (nB_c(w_val) + 1.0)
     elif k == 3:
-        rate = kappa_c(w_val) * nB_c(w_val)
+        rate = kappa_c(-w_val) * nB_c(-w_val)
     else:
         raise ValueError(f"Unknown k={k}")
     
+    # print("rate: "+str(rate))
     # if rate > 10:
     #     raise ValueError("High Dissipation rate.")
     return rate
@@ -82,7 +83,35 @@ def to_computational_basis(d, op_eig: np.ndarray) -> np.ndarray:
     data = load_globalME_data(pkl_path, d) 
     U = data["U"]
     Udag = U.conj().T
-    return U @ op_eig @ Udag
+    return U @ op_eig @ Udag 
+
+def build_Liouvillian_superoperator(d, Omega0, g, \
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
+    
+    param_values = {"Omega": Omega0, "g": g} 
+
+    nB_h_fun = partial(ut.n_B, T=T_h) 
+    nB_c_fun = partial(ut.n_B, T=T_c) 
+    kappa_h_fun = partial(ut.kappa_Ohmic, eta=eta_h, omega_c=omega_c_h) 
+    kappa_c_fun = partial(ut.kappa_Ohmic, eta=eta_c, omega_c=omega_c_c) 
+
+    # Note that Lops and Hs are both in Hs eigenbasis. 
+    Lops = build_Lops_from_pkl(
+        d = d,
+        kappa_h_fun=kappa_h_fun, 
+        kappa_c_fun=kappa_c_fun, 
+        nB_h_fun=nB_h_fun, 
+        nB_c_fun=nB_c_fun, 
+        param_values=param_values, 
+    )
+
+    Hs_num = build_Hs_matrix_from_pkl(d, param_values) 
+    Hs = qt.Qobj(np.array(Hs_num, dtype=complex)) 
+    # print(Hs)
+    L = qt.liouvillian(Hs, Lops)
+
+    return L
+
 
 def calculate_steadystate_sol(d, Omega0, g, \
                                 T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
@@ -106,7 +135,7 @@ def calculate_steadystate_sol(d, Omega0, g, \
 
     Hs_num = build_Hs_matrix_from_pkl(d, param_values) 
     Hs = qt.Qobj(np.array(Hs_num, dtype=complex)) 
-
+    # print(Hs)
     rho_ss = qt.steadystate(Hs, Lops)
 
     rho_ss = qt.Qobj(to_computational_basis(d, rho_ss.full()), \

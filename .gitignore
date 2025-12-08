@@ -13,4 +13,5 @@ venv/
 .vscode/
 .idea/
 
-tests_Qubit-Qutrit/
+tests/
+report_files/

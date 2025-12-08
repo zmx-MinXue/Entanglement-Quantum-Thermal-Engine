@@ -6,10 +6,10 @@ from scipy.optimize import differential_evolution
 
 import src.utilities_2xd_GlobalME as u2dg
 
-result_path = "results/data/2xd_Global_Negativity_scan_d.pkl"
+result_path = "results/data/2xd_Global_Negativity_scan_d_v1.pkl"
 
 # --- Fixed Parameters ---
-d = 7 
+d = 3  
 
 Omega0 = 1.0
 T_h = 10.0
@@ -19,17 +19,20 @@ omega_c_c = 50.0
 
 # --- Objective Function ---
 def objective_function(params):
-    eta_h, eta_c, g = params
-    negativity = u2dg.calculate_steady_negativity(d, Omega0, g, \
-                            T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
-    
-    return -negativity
+    try: 
+        eta_h, eta_c, g = params
+        negativity = u2dg.calculate_steady_negativity(d, Omega0, g, \
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
+        return -negativity
+    except ValueError as e: 
+        # print(f"DEBUG: Singular matrix caught for params {params}. Error: {e}")
+        return 1.0 
 
 
 # --- Boundary for optimiaztion parameters ---
 bounds = [
     (1e-10, 1e-2),      # eta_h 
-    (1e-9, 1),          # eta_c 
+    (1e-5, 1),          # eta_c 
     (1e-5, 5)           # g 
 ]
 
