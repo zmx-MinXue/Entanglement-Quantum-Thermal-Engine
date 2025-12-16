@@ -18,7 +18,7 @@ def generate_qubit_oscillator_operators(d: int):
     for n in range(1, d):
         a_mat[n-1, n] = np.sqrt(n)     # |n-1><n| term
 
-    a = qt.Qobj(a_mat)
+    a = qt.Qobj(a_mat, dims=[[d],[d]])
     adag = a.dag()
     N = adag * a
 
@@ -52,6 +52,16 @@ def construct_Hs(g, basic_ops):
     return g * (OpQubit_to_OpS(basic_ops["sigma_p"], basic_ops) * OpOsc_to_OpS(basic_ops["a"], basic_ops) 
                 + OpQubit_to_OpS(basic_ops["sigma_m"], basic_ops) * OpOsc_to_OpS(basic_ops["adag"], basic_ops))
 
+def construct_Hs_lab(g, Omega0, basic_ops): 
+    return (g * (OpQubit_to_OpS(basic_ops["sigma_p"], basic_ops) * OpOsc_to_OpS(basic_ops["a"], basic_ops) 
+                + OpQubit_to_OpS(basic_ops["sigma_m"], basic_ops) * OpOsc_to_OpS(basic_ops["adag"], basic_ops))
+            + Omega0 * (OpQubit_to_OpS(basic_ops["sigma_p"]*basic_ops["sigma_m"], basic_ops)
+                + OpOsc_to_OpS(basic_ops["N"], basic_ops)))
+
+def construct_Hs_TD(Omega0, basic_ops): 
+    return (Omega0 * (OpQubit_to_OpS(basic_ops["sigma_p"]*basic_ops["sigma_m"], basic_ops)
+                + OpOsc_to_OpS(basic_ops["N"], basic_ops)))
+
 # --- Construct Lindblad jump operators, ---
 # --- Qubit-d-dim truncated harmonic oscillator system coupling to Hot and Cold Bosinic bath with Ohmic spectrum ----
 def construct_L_ops(basic_ops, Omega0, T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
@@ -74,17 +84,56 @@ def construct_L_ops(basic_ops, Omega0, T_h, T_c, eta_h, eta_c, omega_c_h, omega_
     return L_ops
 
 def calculate_steadystate_sol(basic_ops, Omega0, g, \
-                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
-    Hs = construct_Hs(g, basic_ops)
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c,\
+                                    lab_frame=False):
+    if lab_frame == False:
+        Hs = construct_Hs(g, basic_ops)
+    else:  
+        Hs = construct_Hs_lab(g, Omega0, basic_ops)
+
     L_ops = construct_L_ops(basic_ops, Omega0, T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     rho_ss = qt.steadystate(Hs, L_ops)
     return rho_ss
 
 # --- Entanglement anylysis, negativity from steadty state ---
 def calculate_steady_negativity(basic_ops, Omega0, g, \
-                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c):
-    Hs = construct_Hs(g, basic_ops)
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c,\
+                                lab_frame=False):
+    if lab_frame == False:
+        Hs = construct_Hs(g, basic_ops)
+    else:  
+        Hs = construct_Hs_lab(g, Omega0, basic_ops)
+
     L_ops = construct_L_ops(basic_ops, Omega0, T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c)
     rho_ss = qt.steadystate(Hs, L_ops)
     N_ss = qt.negativity(rho_ss, 1)
     return N_ss
+
+def D_of_L_on_rho(L, rho):
+    # D[c]rho = L rho L^\dagger - 1/2 {L^\dagger L, rho}
+    LdagL = L.dag() * L
+    return L * rho * L.dag() - 0.5 * (LdagL * rho + rho * LdagL)
+
+def calculate_thermo_heat_current(rho, basic_ops, Omega0, g, \
+                                T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c,\
+                                use_Hs=False):
+    # J_alpha(t) = - Tr[ H_TD * L_alpha[rho_S(t)] ]
+    if use_Hs == False:
+        H_TD = construct_Hs_TD(Omega0, basic_ops)
+    else: 
+        H_TD = construct_Hs_lab(g, Omega0, basic_ops)
+
+    L_ops = construct_L_ops(basic_ops, Omega0, T_h, T_c, eta_h, eta_c, omega_c_h, omega_c_c) 
+
+    # Hot bath
+    L_H_rho = D_of_L_on_rho(L_ops[0], rho) + D_of_L_on_rho(L_ops[1], rho)
+    J_H = -(H_TD * L_H_rho).tr()
+
+    # Cold bath
+    L_C_rho = D_of_L_on_rho(L_ops[2], rho) + D_of_L_on_rho(L_ops[3], rho)
+    J_C = -(H_TD * L_C_rho).tr()
+
+    if abs(J_H.imag) > 1e-10 or abs(J_C.imag) > 1e-10:
+        print("Warning: heat current has non-negligible imaginary part:", J_H, J_C)
+
+    return J_H.real, J_C.real
